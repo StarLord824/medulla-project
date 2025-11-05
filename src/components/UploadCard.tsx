@@ -2,15 +2,49 @@
 
 import { Upload } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useState, useRef } from 'react';
+import ImageEditor from './ImageEditor';
 
 export default function UploadCard() {
-  const handleUpload = () => {
-    // Upload logic here
-    console.log('Upload button clicked');
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
   };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setImageUrl(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleBackToUpload = () => {
+    setImageUrl(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  if (imageUrl) {
+    return <ImageEditor imageUrl={imageUrl} onBack={handleBackToUpload} />;
+  }
 
   return (
     <div className="relative w-full max-w-2xl">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+      
       <motion.div 
         className="relative backdrop-blur-xl bg-white/40 dark:bg-slate-800/40 rounded-3xl border border-white/50 dark:border-slate-700/50 shadow-2xl shadow-indigo-500/10 dark:shadow-indigo-500/5 overflow-hidden"
         initial={{ opacity: 0, y: 20 }}
@@ -18,10 +52,8 @@ export default function UploadCard() {
         transition={{ duration: 0.6, ease: 'easeOut' }}
         whileHover={{ scale: 1.02 }}
       >
-        {/* Background Pattern */}
         <div className="absolute inset-0 bg-linear-to-br from-indigo-100/30 via-transparent to-blue-100/30 dark:from-indigo-900/20 dark:to-blue-900/20" />
         
-        {/* Content */}
         <div className="relative z-10 p-12 text-center space-y-8">
           <motion.div 
             className="space-y-4"
@@ -37,7 +69,6 @@ export default function UploadCard() {
             </p>
           </motion.div>
 
-          {/* Upload Button */}
           <motion.div 
             className="flex justify-center"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -45,7 +76,7 @@ export default function UploadCard() {
             transition={{ delay: 0.4, duration: 0.5 }}
           >
             <motion.button
-              onClick={handleUpload}
+              onClick={handleUploadClick}
               className="group relative px-8 py-4 bg-linear-to-r from-indigo-600 to-blue-500 text-white font-semibold rounded-full shadow-lg shadow-indigo-500/30 flex items-center gap-3"
               whileHover={{ 
                 scale: 1.05,
@@ -64,7 +95,6 @@ export default function UploadCard() {
             </motion.button>
           </motion.div>
 
-          {/* Stats or Info */}
           <motion.div 
             className="flex justify-center gap-8 pt-4"
             initial={{ opacity: 0 }}

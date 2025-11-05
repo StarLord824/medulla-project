@@ -2,12 +2,14 @@
 
 import { Upload } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useState, useRef } from 'react';
-import ImageEditor from './ImageEditor';
+import { useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { useImageStore } from '@/store/useImageStore';
 
 export default function UploadCard() {
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+  const setImageUrl = useImageStore((state) => state.setImageUrl);
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -16,24 +18,16 @@ export default function UploadCard() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setImageUrl(event.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+      // Create blob URL for efficient browser preview
+      const blobUrl = URL.createObjectURL(file);
+      
+      // Store in Zustand
+      setImageUrl(blobUrl);
+      
+      // Navigate to editor
+      router.push('/editor');
     }
   };
-
-  const handleBackToUpload = () => {
-    setImageUrl(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  if (imageUrl) {
-    return <ImageEditor imageUrl={imageUrl} onBack={handleBackToUpload} />;
-  }
 
   return (
     <div className="relative w-full max-w-2xl">

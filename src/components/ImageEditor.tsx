@@ -1,10 +1,6 @@
-
-// ============================================================
-// components/ImageEditor.tsx (Client Component)
-// ============================================================
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Stage, Layer, Image as KonvaImage, Line, Text as KonvaText, Rect } from 'react-konva';
 import { motion } from 'motion/react';
 import { 
@@ -13,6 +9,7 @@ import {
 } from 'lucide-react';
 import Konva from 'konva';
 import { create } from 'zustand';
+import { KonvaEventObject } from 'konva/lib/Node';
 
 interface DrawingLine {
   tool: string;
@@ -30,6 +27,13 @@ interface TextElement {
   fill: string;
 }
 
+interface EditorSnapshot {
+  rotation: number;
+  scale: number;
+  lines: DrawingLine[];
+  textElements: TextElement[];
+}
+
 interface EditorState {
   currentTool: 'select' | 'rotate' | 'crop' | 'draw' | 'text';
   rotation: number;
@@ -39,8 +43,8 @@ interface EditorState {
   lines: DrawingLine[];
   textElements: TextElement[];
   cropRect: { x: number; y: number; width: number; height: number } | null;
-  undoStack: any[];
-  redoStack: any[];
+  undoStack: EditorSnapshot[];
+  redoStack: EditorSnapshot[];
   
   setCurrentTool: (tool: EditorState['currentTool']) => void;
   setRotation: (rotation: number) => void;
@@ -203,11 +207,12 @@ export default function ImageEditor({ imageUrl, onBack }: ImageEditorProps) {
     img.src = imageUrl;
   }, [imageUrl, setImageSize]);
 
-  const handleMouseDown = (e: any) => {
+  const handleMouseDown = (e: KonvaEventObject<MouseEvent>) => {
     if (currentTool === 'draw') {
       saveState();
       setIsDrawing(true);
-      const pos = e.target.getStage().getPointerPosition();
+      const pos = e.target.getStage()?.getPointerPosition();
+      if (!pos) return;
       addLine({
         tool: 'pen',
         points: [pos.x, pos.y],
@@ -215,7 +220,8 @@ export default function ImageEditor({ imageUrl, onBack }: ImageEditorProps) {
         strokeWidth: 3,
       });
     } else if (currentTool === 'text') {
-      const pos = e.target.getStage().getPointerPosition();
+      const pos = e.target.getStage()?.getPointerPosition();
+      if (!pos) return;
       saveState();
       addTextElement({
         id: `text-${Date.now()}`,
@@ -226,19 +232,22 @@ export default function ImageEditor({ imageUrl, onBack }: ImageEditorProps) {
         fill: '#ffffff',
       });
     } else if (currentTool === 'crop') {
-      const pos = e.target.getStage().getPointerPosition();
+      const pos = e.target.getStage()?.getPointerPosition();
+      if (!pos) return;
       setCropRect({ x: pos.x, y: pos.y, width: 0, height: 0 });
     }
   };
 
-  const handleMouseMove = (e: any) => {
-    const pos = e.target.getStage().getPointerPosition();
+  const handleMouseMove = (e: KonvaEventObject<MouseEvent>) => {
+    const pos = e.target.getStage()?.getPointerPosition();
+    if (!pos) return;
     setCursorPos({ x: pos.x, y: pos.y });
 
     if (!isDrawing || currentTool !== 'draw') return;
     
     const stage = e.target.getStage();
-    const point = stage.getPointerPosition();
+    const point = stage?.getPointerPosition();
+    if (!point) return;
     const lastLine = lines[lines.length - 1];
     
     if (lastLine) {
@@ -255,7 +264,7 @@ export default function ImageEditor({ imageUrl, onBack }: ImageEditorProps) {
     if (!stageRef.current) return;
     const dataURL = stageRef.current.toDataURL({ mimeType: 'image/png' });
     const link = document.createElement('a');
-    link.download = 'edited-image.png';
+    link.download = 'imagelab-edited.png';
     link.href = dataURL;
     document.body.appendChild(link);
     link.click();
@@ -339,7 +348,7 @@ export default function ImageEditor({ imageUrl, onBack }: ImageEditorProps) {
                     if (tool.id === 'rotate') {
                       handleRotate();
                     } else {
-                      setCurrentTool(tool.id as any);
+                      setCurrentTool(tool.id as EditorState['currentTool']);
                     }
                   }}
                   disabled={tool.disabled}
@@ -446,7 +455,6 @@ export default function ImageEditor({ imageUrl, onBack }: ImageEditorProps) {
         </div>
       </div>
 
-      
       {/* Canvas */}
       <div className="w-full h-screen flex items-center justify-center">
         <Stage
@@ -504,8 +512,7 @@ export default function ImageEditor({ imageUrl, onBack }: ImageEditorProps) {
                     y: e.target.y(),
                   });
                 }}
-                onDblClick={(e) => {
-                  const textNode = e.target;
+                onDblClick={() => {
                   const newText = prompt('Edit text:', textEl.text);
                   if (newText !== null) {
                     saveState();

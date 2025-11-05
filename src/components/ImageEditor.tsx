@@ -1,15 +1,31 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { Stage, Layer, Image as KonvaImage, Line, Text as KonvaText, Rect } from 'react-konva';
-import { 
-  Upload, RotateCw, Crop, Pen, Type, Undo2, Redo2, 
-  RotateCcw, Download, ArrowLeft, GripVertical 
-} from 'lucide-react';
-import Konva from 'konva';
-import { KonvaEventObject } from 'konva/lib/Node';
-import { EditorState } from '@/types/editorInterface';
-import { useEditorStore } from '@/store/useEditorStore';
+import { useState, useRef, useEffect } from "react";
+import {
+  Stage,
+  Layer,
+  Image as KonvaImage,
+  Line,
+  Text as KonvaText,
+  Rect,
+} from "react-konva";
+import {
+  Upload,
+  RotateCw,
+  Crop,
+  Pen,
+  Type,
+  Undo2,
+  Redo2,
+  RotateCcw,
+  Download,
+  ArrowLeft,
+  GripVertical,
+} from "lucide-react";
+import Konva from "konva";
+import { KonvaEventObject } from "konva/lib/Node";
+import { EditorState } from "@/types/editorInterface";
+import { useEditorStore } from "@/store/useEditorStore";
 
 type DraggableConsoleProps = {
   cursorPos: { x: number; y: number };
@@ -18,7 +34,12 @@ type DraggableConsoleProps = {
   scale: number;
 };
 
-function DraggableConsole({ cursorPos, imageSize, rotation, scale }: DraggableConsoleProps) {
+function DraggableConsole({
+  cursorPos,
+  imageSize,
+  rotation,
+  scale,
+}: DraggableConsoleProps) {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -28,20 +49,20 @@ function DraggableConsole({ cursorPos, imageSize, rotation, scale }: DraggableCo
     const updatePosition = () => {
       setPosition({
         x: window.innerWidth - 280,
-        y: 96
+        y: 96,
       });
     };
     updatePosition();
-    window.addEventListener('resize', updatePosition);
-    return () => window.removeEventListener('resize', updatePosition);
+    window.addEventListener("resize", updatePosition);
+    return () => window.removeEventListener("resize", updatePosition);
   }, []);
 
   const handlePointerDown = (e: React.PointerEvent) => {
-    if ((e.target as HTMLElement).closest('.drag-handle')) {
+    if ((e.target as HTMLElement).closest(".drag-handle")) {
       setIsDragging(true);
       setDragStart({
         x: e.clientX - position.x,
-        y: e.clientY - position.y
+        y: e.clientY - position.y,
       });
       e.currentTarget.setPointerCapture(e.pointerId);
     }
@@ -51,7 +72,7 @@ function DraggableConsole({ cursorPos, imageSize, rotation, scale }: DraggableCo
     if (isDragging) {
       setPosition({
         x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y
+        y: e.clientY - dragStart.y,
       });
     }
   };
@@ -65,12 +86,12 @@ function DraggableConsole({ cursorPos, imageSize, rotation, scale }: DraggableCo
     <div
       ref={consoleRef}
       style={{
-        position: 'fixed',
+        position: "fixed",
         left: `${position.x}px`,
         top: `${position.y}px`,
         zIndex: 50,
-        touchAction: 'none',
-        cursor: isDragging ? 'grabbing' : 'default'
+        touchAction: "none",
+        cursor: isDragging ? "grabbing" : "default",
       }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -86,20 +107,28 @@ function DraggableConsole({ cursorPos, imageSize, rotation, scale }: DraggableCo
         <div className="space-y-2 text-xs text-white/70">
           <div className="flex justify-between">
             <span>Cursor X:</span>
-            <span className="text-white/90 font-mono">{Math.round(cursorPos.x)}px</span>
+            <span className="text-white/90 font-mono">
+              {Math.round(cursorPos.x)}px
+            </span>
           </div>
           <div className="flex justify-between">
             <span>Cursor Y:</span>
-            <span className="text-white/90 font-mono">{Math.round(cursorPos.y)}px</span>
+            <span className="text-white/90 font-mono">
+              {Math.round(cursorPos.y)}px
+            </span>
           </div>
           <div className="h-px bg-white/20 my-2" />
           <div className="flex justify-between">
             <span>Width:</span>
-            <span className="text-white/90 font-mono">{Math.round(imageSize.width)}px</span>
+            <span className="text-white/90 font-mono">
+              {Math.round(imageSize.width)}px
+            </span>
           </div>
           <div className="flex justify-between">
             <span>Height:</span>
-            <span className="text-white/90 font-mono">{Math.round(imageSize.height)}px</span>
+            <span className="text-white/90 font-mono">
+              {Math.round(imageSize.height)}px
+            </span>
           </div>
           <div className="h-px bg-white/20 my-2" />
           <div className="flex justify-between">
@@ -108,7 +137,9 @@ function DraggableConsole({ cursorPos, imageSize, rotation, scale }: DraggableCo
           </div>
           <div className="flex justify-between">
             <span>Zoom:</span>
-            <span className="text-white/90 font-mono">{(scale * 100).toFixed(0)}%</span>
+            <span className="text-white/90 font-mono">
+              {(scale * 100).toFixed(0)}%
+            </span>
           </div>
         </div>
       </div>
@@ -116,14 +147,25 @@ function DraggableConsole({ cursorPos, imageSize, rotation, scale }: DraggableCo
   );
 }
 
-export default function ImageEditor({ imageUrl, onBack }: { imageUrl: string; onBack: () => void }) {
+export default function ImageEditor({
+  imageUrl,
+  onBack,
+}: {
+  imageUrl: string;
+  onBack: () => void;
+}) {
   const stageRef = useRef<Konva.Stage>(null);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
-  const [stageDimensions, setStageDimensions] = useState({ width: 800, height: 600 });
-  const [cropStart, setCropStart] = useState<{ x: number; y: number } | null>(null);
-  
+  const [stageDimensions, setStageDimensions] = useState({
+    width: 800,
+    height: 600,
+  });
+  const [cropStart, setCropStart] = useState<{ x: number; y: number } | null>(
+    null
+  );
+
   const {
     currentTool,
     setCurrentTool,
@@ -163,14 +205,14 @@ export default function ImageEditor({ imageUrl, onBack }: { imageUrl: string; on
       });
     };
     updateDimensions();
-    window.addEventListener('resize', updateDimensions);
-    return () => window.removeEventListener('resize', updateDimensions);
+    window.addEventListener("resize", updateDimensions);
+    return () => window.removeEventListener("resize", updateDimensions);
   }, []);
 
   useEffect(() => {
     if (!imageUrl) return;
     const img = new window.Image();
-    img.crossOrigin = 'anonymous';
+    img.crossOrigin = "anonymous";
     img.onload = () => {
       setImage(img);
       setImageSize({ width: img.width, height: img.height });
@@ -182,7 +224,7 @@ export default function ImageEditor({ imageUrl, onBack }: { imageUrl: string; on
   useEffect(() => {
     if (!imageSrc || imageSrc === imageUrl) return;
     const img = new window.Image();
-    img.crossOrigin = 'anonymous';
+    img.crossOrigin = "anonymous";
     img.onload = () => {
       setImage(img);
     };
@@ -191,63 +233,73 @@ export default function ImageEditor({ imageUrl, onBack }: { imageUrl: string; on
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'Space' && !isPanning) {
+      if (e.code === "Space" && !isPanning) {
         e.preventDefault();
         setIsPanning(true);
       }
     };
-    
+
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.code === 'Space') {
+      if (e.code === "Space") {
         e.preventDefault();
         setIsPanning(false);
       }
     };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
     };
   }, [isPanning]);
 
   const finalizeCrop = () => {
     if (!cropRect || !stageRef.current || !image) return;
-    
+
     saveState();
-    
+
     const stage = stageRef.current;
-    const offscreenCanvas = document.createElement('canvas');
-    const ctx = offscreenCanvas.getContext('2d');
+    const offscreenCanvas = document.createElement("canvas");
+    const ctx = offscreenCanvas.getContext("2d");
     if (!ctx) return;
 
     const stageCanvas = stage.toCanvas();
-    
+
     offscreenCanvas.width = Math.abs(cropRect.width);
     offscreenCanvas.height = Math.abs(cropRect.height);
-    
-    const sourceX = cropRect.width < 0 ? cropRect.x + cropRect.width : cropRect.x;
-    const sourceY = cropRect.height < 0 ? cropRect.y + cropRect.height : cropRect.y;
-    
+
+    const sourceX =
+      cropRect.width < 0 ? cropRect.x + cropRect.width : cropRect.x;
+    const sourceY =
+      cropRect.height < 0 ? cropRect.y + cropRect.height : cropRect.y;
+
     ctx.drawImage(
       stageCanvas,
-      sourceX, sourceY,
-      Math.abs(cropRect.width), Math.abs(cropRect.height),
-      0, 0,
-      Math.abs(cropRect.width), Math.abs(cropRect.height)
+      sourceX,
+      sourceY,
+      Math.abs(cropRect.width),
+      Math.abs(cropRect.height),
+      0,
+      0,
+      Math.abs(cropRect.width),
+      Math.abs(cropRect.height)
     );
-    
-    const croppedDataURL = offscreenCanvas.toDataURL('image/png');
+
+    const croppedDataURL = offscreenCanvas.toDataURL("image/png");
     const newImg = new window.Image();
     newImg.onload = () => {
       setImage(newImg);
       setImageSize({ width: newImg.width, height: newImg.height });
       setImageSrc(croppedDataURL);
       setCropRect(null);
-      reset();
+      setImage(newImg);
+      setImageSize({ width: newImg.width, height: newImg.height });
+      setImageSrc(croppedDataURL);
+      setCropRect(null);
     };
+    saveState();
     newImg.src = croppedDataURL;
   };
 
@@ -257,34 +309,34 @@ export default function ImageEditor({ imageUrl, onBack }: { imageUrl: string; on
       return;
     }
 
-    if (currentTool === 'draw') {
+    if (currentTool === "draw") {
       saveState();
       setIsDrawing(true);
       const pos = e.target.getStage()?.getPointerPosition();
       if (!pos) return;
       addLine({
-        tool: 'pen',
+        tool: "pen",
         points: [pos.x, pos.y],
-        stroke: '#60a5fa',
+        stroke: "#60a5fa",
         strokeWidth: 3,
       });
-    } else if (currentTool === 'text') {
+    } else if (currentTool === "text") {
       const target = e.target;
-      if (target.getClassName() === 'Text') return;
-      
+      if (target.getClassName() === "Text") return;
+
       const pos = e.target.getStage()?.getPointerPosition();
       if (!pos) return;
       saveState();
       addTextElement({
         id: `text-${Date.now()}`,
-        text: 'Double-click to edit',
+        text: "Double-click to edit",
         x: pos.x,
         y: pos.y,
         fontSize: 24,
-        fill: '#ffffff',
+        fill: "#ffffff",
       });
-      setCurrentTool('select');
-    } else if (currentTool === 'crop') {
+      setCurrentTool("select");
+    } else if (currentTool === "crop") {
       const pos = e.target.getStage()?.getPointerPosition();
       if (!pos) return;
       setCropStart({ x: pos.x, y: pos.y });
@@ -300,10 +352,10 @@ export default function ImageEditor({ imageUrl, onBack }: { imageUrl: string; on
     if (isPanning) {
       const stage = stageRef.current;
       if (!stage) return;
-      
+
       const newPos = {
         x: stagePosition.x + e.evt.movementX,
-        y: stagePosition.y + e.evt.movementY
+        y: stagePosition.y + e.evt.movementY,
       };
       setStagePosition(newPos);
       stage.position(newPos);
@@ -311,18 +363,18 @@ export default function ImageEditor({ imageUrl, onBack }: { imageUrl: string; on
       return;
     }
 
-    if (isDrawing && currentTool === 'draw') {
+    if (isDrawing && currentTool === "draw") {
       const lastLine = lines[lines.length - 1];
       if (lastLine) {
         const newPoints = lastLine.points.concat([pos.x, pos.y]);
         updateLastLine(newPoints);
       }
-    } else if (currentTool === 'crop' && cropStart) {
+    } else if (currentTool === "crop" && cropStart) {
       setCropRect({
         x: cropStart.x,
         y: cropStart.y,
         width: pos.x - cropStart.x,
-        height: pos.y - cropStart.y
+        height: pos.y - cropStart.y,
       });
     }
   };
@@ -331,12 +383,16 @@ export default function ImageEditor({ imageUrl, onBack }: { imageUrl: string; on
     if (isDrawing) {
       setIsDrawing(false);
     }
-    
+
     if (isPanning) {
       setIsPanning(false);
     }
-    
-    if (currentTool === 'crop' && cropRect && (Math.abs(cropRect.width) > 10 || Math.abs(cropRect.height) > 10)) {
+
+    if (
+      currentTool === "crop" &&
+      cropRect &&
+      (Math.abs(cropRect.width) > 10 || Math.abs(cropRect.height) > 10)
+    ) {
       finalizeCrop();
       setCropStart(null);
     }
@@ -344,30 +400,30 @@ export default function ImageEditor({ imageUrl, onBack }: { imageUrl: string; on
 
   const handleWheel = (e: KonvaEventObject<WheelEvent>) => {
     e.evt.preventDefault();
-    
+
     const stage = stageRef.current;
     if (!stage) return;
-    
+
     const scaleBy = 1.05;
     const oldScale = scale;
     const pointer = stage.getPointerPosition();
     if (!pointer) return;
-    
+
     const mousePointTo = {
       x: (pointer.x - stagePosition.x) / oldScale,
       y: (pointer.y - stagePosition.y) / oldScale,
     };
-    
+
     const direction = e.evt.deltaY > 0 ? -1 : 1;
     const newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
-    
+
     setScale(Math.max(0.1, Math.min(5, newScale)));
-    
+
     const newPos = {
       x: pointer.x - mousePointTo.x * newScale,
       y: pointer.y - mousePointTo.y * newScale,
     };
-    
+
     setStagePosition(newPos);
     stage.position(newPos);
     stage.batchDraw();
@@ -375,9 +431,9 @@ export default function ImageEditor({ imageUrl, onBack }: { imageUrl: string; on
 
   const handleDownload = () => {
     if (!stageRef.current) return;
-    const dataURL = stageRef.current.toDataURL({ mimeType: 'image/png' });
-    const link = document.createElement('a');
-    link.download = 'imagelab-edited.png';
+    const dataURL = stageRef.current.toDataURL({ mimeType: "image/png" });
+    const link = document.createElement("a");
+    link.download = "imagelab-edited.png";
     link.href = dataURL;
     document.body.appendChild(link);
     link.click();
@@ -390,21 +446,25 @@ export default function ImageEditor({ imageUrl, onBack }: { imageUrl: string; on
   };
 
   const getCursor = () => {
-    if (isPanning) return 'grab';
+    if (isPanning) return "grab";
     switch (currentTool) {
-      case 'draw': return 'crosshair';
-      case 'text': return 'text';
-      case 'crop': return 'crosshair';
-      default: return 'default';
+      case "draw":
+        return "crosshair";
+      case "text":
+        return "text";
+      case "crop":
+        return "crosshair";
+      default:
+        return "default";
     }
   };
 
   const tools = [
-    { id: 'select', icon: Upload, label: 'Select', disabled: true },
-    { id: 'rotate', icon: RotateCw, label: 'Rotate' },
-    { id: 'crop', icon: Crop, label: 'Crop' },
-    { id: 'draw', icon: Pen, label: 'Draw' },
-    { id: 'text', icon: Type, label: 'Text' },
+    { id: "select", icon: Upload, label: "Select", disabled: true },
+    { id: "rotate", icon: RotateCw, label: "Rotate" },
+    { id: "crop", icon: Crop, label: "Crop" },
+    { id: "draw", icon: Pen, label: "Draw" },
+    { id: "text", icon: Type, label: "Text" },
   ];
 
   return (
@@ -423,11 +483,15 @@ export default function ImageEditor({ imageUrl, onBack }: { imageUrl: string; on
                 <Crop className="text-white" size={20} />
               </div>
               <div>
-                <h1 className="text-white text-xl font-bold">ImageLab Editor</h1>
-                <p className="text-white/60 text-xs">Edit your masterpiece • Hold Space to pan • Scroll to zoom</p>
+                <h1 className="text-white text-xl font-bold">
+                  ImageLab Editor
+                </h1>
+                <p className="text-white/60 text-xs">
+                  Edit your masterpiece • Hold Space to pan • Scroll to zoom
+                </p>
               </div>
             </div>
-            
+
             <button
               onClick={handleDownload}
               className="bg-linear-to-r from-indigo-500 to-blue-600 text-white px-6 py-2.5 rounded-xl font-medium flex items-center gap-2 shadow-lg hover:shadow-xl transition-shadow"
@@ -445,27 +509,28 @@ export default function ImageEditor({ imageUrl, onBack }: { imageUrl: string; on
             {tools.map((tool) => {
               const Icon = tool.icon;
               const isActive = currentTool === tool.id;
-              
+
               return (
                 <button
                   key={tool.id}
                   onClick={() => {
                     if (tool.disabled) return;
-                    if (tool.id === 'rotate') {
+                    if (tool.id === "rotate") {
                       handleRotate();
                     } else {
-                      setCurrentTool(tool.id as EditorState['currentTool']);
+                      setCurrentTool(tool.id as EditorState["currentTool"]);
                     }
                   }}
                   disabled={tool.disabled}
                   className={`
                     w-12 h-12 rounded-xl flex items-center justify-center
                     transition-all duration-200
-                    ${isActive 
-                      ? 'bg-blue-500/30 text-blue-300 border-2 border-blue-400/50' 
-                      : tool.disabled
-                      ? 'bg-white/5 text-white/30 cursor-not-allowed'
-                      : 'bg-white/10 text-white/80 hover:bg-white/20 border border-white/10'
+                    ${
+                      isActive
+                        ? "bg-blue-500/30 text-blue-300 border-2 border-blue-400/50"
+                        : tool.disabled
+                        ? "bg-white/5 text-white/30 cursor-not-allowed"
+                        : "bg-white/10 text-white/80 hover:bg-white/20 border border-white/10"
                     }
                   `}
                   title={tool.label}
@@ -474,41 +539,43 @@ export default function ImageEditor({ imageUrl, onBack }: { imageUrl: string; on
                 </button>
               );
             })}
-            
+
             <div className="h-px bg-white/20 my-1" />
-            
+
             <button
               onClick={undo}
               disabled={undoStack.length === 0}
               className={`
                 w-12 h-12 rounded-xl flex items-center justify-center
                 transition-all duration-200
-                ${undoStack.length > 0
-                  ? 'bg-white/10 text-white/80 hover:bg-white/20 border border-white/10'
-                  : 'bg-white/5 text-white/30 cursor-not-allowed'
+                ${
+                  undoStack.length > 0
+                    ? "bg-white/10 text-white/80 hover:bg-white/20 border border-white/10"
+                    : "bg-white/5 text-white/30 cursor-not-allowed"
                 }
               `}
               title="Undo"
             >
               <Undo2 size={20} />
             </button>
-            
+
             <button
               onClick={redo}
               disabled={redoStack.length === 0}
               className={`
                 w-12 h-12 rounded-xl flex items-center justify-center
                 transition-all duration-200
-                ${redoStack.length > 0
-                  ? 'bg-white/10 text-white/80 hover:bg-white/20 border border-white/10'
-                  : 'bg-white/5 text-white/30 cursor-not-allowed'
+                ${
+                  redoStack.length > 0
+                    ? "bg-white/10 text-white/80 hover:bg-white/20 border border-white/10"
+                    : "bg-white/5 text-white/30 cursor-not-allowed"
                 }
               `}
               title="Redo"
             >
               <Redo2 size={20} />
             </button>
-            
+
             <button
               onClick={reset}
               className="w-12 h-12 rounded-xl flex items-center justify-center bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-400/30 transition-all duration-200"
@@ -520,7 +587,7 @@ export default function ImageEditor({ imageUrl, onBack }: { imageUrl: string; on
         </div>
       </div>
 
-      <DraggableConsole 
+      <DraggableConsole
         cursorPos={cursorPos}
         imageSize={imageSize}
         rotation={rotation}
@@ -555,7 +622,7 @@ export default function ImageEditor({ imageUrl, onBack }: { imageUrl: string; on
               />
             )}
           </Layer>
-          
+
           <Layer>
             {lines.map((line, i) => (
               <Line
@@ -569,7 +636,7 @@ export default function ImageEditor({ imageUrl, onBack }: { imageUrl: string; on
               />
             ))}
           </Layer>
-          
+
           {cropRect && (
             <Layer>
               <Rect
@@ -584,7 +651,7 @@ export default function ImageEditor({ imageUrl, onBack }: { imageUrl: string; on
               />
             </Layer>
           )}
-          
+
           <Layer>
             {textElements.map((textEl) => (
               <KonvaText
@@ -604,12 +671,30 @@ export default function ImageEditor({ imageUrl, onBack }: { imageUrl: string; on
                     y: e.target.y(),
                   });
                 }}
-                onDblClick={() => {
-                  const newText = prompt('Edit text:', textEl.text);
-                  if (newText !== null && newText !== textEl.text) {
+                onDblClick={(e) => {
+                  const textNode = e.target;
+                  // const stage = textNode.getStage();
+                  const layer = textNode.getLayer();
+                  const { x, y } = textNode.absolutePosition();
+
+                  const textArea = document.createElement('textarea');
+                  document.body.appendChild(textArea);
+
+                  textArea.value = (textNode as Konva.Text).text();
+                  textArea.style.position = 'absolute';
+                  textArea.style.top = y + 'px';
+                  textArea.style.left = x + 'px';
+                  textArea.style.fontSize = (textNode as Konva.Text).fontSize() + 'px';
+                  textArea.style.color = String((textNode as Konva.Text).fill());
+
+                  textArea.focus();
+
+                  textArea.addEventListener('blur', () => {
                     saveState();
-                    updateTextElement(textEl.id, { text: newText });
-                  }
+                    updateTextElement(textEl.id, { text: textArea.value });
+                    document.body.removeChild(textArea);
+                    layer?.draw();
+                  });
                 }}
               />
             ))}
